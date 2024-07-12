@@ -69,13 +69,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 新增员工
+     *
      * @param employeeDTO
      */
     public void addEmployee(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
 
         // 对象属性拷贝
-        BeanUtils.copyProperties(employeeDTO,employee);
+        BeanUtils.copyProperties(employeeDTO, employee);
 
         // 设置账号状态
         employee.setStatus(StatusConstant.ENABLE);
@@ -96,6 +97,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 分页查询员工
+     *
      * @param employeePageQueryDTO
      * @return
      */
@@ -108,4 +110,51 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(employeePage.getTotal(), employeePage.getResult());
     }
 
+    /**
+     * 启用禁用员工账号
+     *
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Employee employee = Employee.builder()
+                .status(status)
+                .id(id)
+                .build();
+        employeeMapper.update(employee);
+    }
+
+    /**
+     * 根据id查询员工
+     *
+     * @param id
+     * @return
+     */
+    public Employee getById(Long id) {
+        Employee employee = employeeMapper.getById(id);
+        // 返回给前端书中的密码设置为******
+        employee.setPassword("******");
+        return employee;
+    }
+
+    /**
+     * 修改员工信息
+     *
+     * @param employeeDTO
+     */
+    @Override
+    public void update(EmployeeDTO employeeDTO) {
+        Employee build = Employee.builder()
+                .id(employeeDTO.getId())
+                .name(employeeDTO.getName())
+                .username(employeeDTO.getUsername())
+                .phone(employeeDTO.getPhone())
+                .sex(employeeDTO.getSex())
+                .idNumber(employeeDTO.getIdNumber())
+                .build();
+        build.setUpdateTime(LocalDateTime.now());
+        build.setUpdateUser(BaseContext.getCurrentId());
+        employeeMapper.update(build);
+    }
 }
