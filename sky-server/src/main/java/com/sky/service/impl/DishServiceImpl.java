@@ -123,6 +123,20 @@ public class DishServiceImpl implements DishService {
     }
 
     /**
+     * 启用、禁用菜品
+     *
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        dishMapper.update(dish);
+    }
+
+    /**
      * 根据id查询菜品和对应的口味
      *
      * @param id
