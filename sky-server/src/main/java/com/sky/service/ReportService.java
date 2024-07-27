@@ -45,8 +45,8 @@ public interface ReportService {
     SalesTop10ReportVO salesTop10Report(LocalDate begin, LocalDate end);
 
     /**
-     *
-     * 导出excel表格
+     * 导出运营数据报表
+     * @param response
      */
-    void export(HttpServletResponse httpResponse) throws IOException, InvalidFormatException;
+    void exportBusinessData(HttpServletResponse response);
 }

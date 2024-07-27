@@ -201,86 +201,69 @@ public class ReportServiceImpl implements ReportService {
     }
 
     /**
-     * 导出excel表格
+     * 导出运营数据报表
+     * @param response
      */
-    @Override
-    public void export(HttpServletResponse httpResponse) throws IOException, InvalidFormatException {
-        File file = new File(reportExcelProperties.getFilePath());
-        OPCPackage opcPackage = OPCPackage.open(file);
-        //获取工作薄
-        XSSFWorkbook workbook = new XSSFWorkbook(opcPackage);
-        String s = reportExcelProperties.getSheet()[0];
-        //获取工作表
-        XSSFSheet sheet = workbook.getSheet(s);
-        //填写日期
-        XSSFRow row = sheet.getRow(1);
-        XSSFCellStyle dataStyle = workbook.createCellStyle();
-        //设置日期的字体
-        XSSFFont font = workbook.createFont();
-        font.setFontHeight(16);
-        font.setFontName("宋体");
-        dataStyle.setAlignment(HorizontalAlignment.RIGHT);
-        XSSFCell cell0 = row.getCell(1);
-        dataStyle.setFont(font);
-        cell0.setCellStyle(dataStyle);
+    public void exportBusinessData(HttpServletResponse response) {
+        //1. 查询数据库，获取营业数据---查询最近30天的运营数据
+        LocalDate dateBegin = LocalDate.now().minusDays(30);
+        LocalDate dateEnd = LocalDate.now().minusDays(1);
 
+        //查询概览数据
+        BusinessDataVO businessDataVO = workspaceService.getBusinessData(LocalDateTime.of(dateBegin, LocalTime.MIN), LocalDateTime.of(dateEnd, LocalTime.MAX));
 
-        //获取营业概览数据
-        LocalDateTime begin = LocalDateTime.now().with(TemporalAdjusters.firstDayOfMonth()).with(LocalTime.MIN);
-        LocalDateTime end = LocalDateTime.now().with(TemporalAdjusters.lastDayOfMonth()).with(LocalTime.MAX);
-        cell0.setCellValue(begin.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss")) + "——" + end.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss")));
-        BusinessDataVO businessData = workspaceService.getBusinessData(begin, end);
-        XSSFRow row3 = sheet.getRow(3);
-        //营业额
-        XSSFCell cell = row3.getCell(2);
-        cell.setCellValue(businessData.getTurnover());
-        //订单完成率
-        XSSFCell cell1 = row3.getCell(4);
-        cell1.setCellValue(businessData.getOrderCompletionRate());
-        //新增用户数
-        XSSFCell cell2 = row3.getCell(6);
-        cell2.setCellValue(businessData.getNewUsers());
-        //有效订单
-        XSSFRow row1 = sheet.getRow(4);
-        XSSFCell cell3 = row1.getCell(2);
-        cell3.setCellValue(businessData.getValidOrderCount());
-        //平均客单价
-        XSSFCell cell4 = row1.getCell(4);
-        cell4.setCellValue(businessData.getValidOrderCount());
-        int dayOfMonth = Period.between(begin.toLocalDate(), end.toLocalDate()).getDays();
-        System.out.println("dayOfMonth:" + dayOfMonth);
-        //获取明细数据
+        //2. 通过POI将数据写入到Excel文件中
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
 
-        for (int i = 0; i < dayOfMonth; i++) {
-            XSSFRow row2 = sheet.getRow(i + 7);
-            LocalDateTime localDateTimeBegin = begin.plusDays(i);
-            LocalDateTime localDateTimeEnd = localDateTimeBegin.with(LocalTime.MAX);
-            BusinessDataVO data = workspaceService.getBusinessData(localDateTimeBegin, localDateTimeEnd);
-            //设置日期
-            row2.getCell(1).setCellValue(localDateTimeBegin.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日")));
-            //营业额
-            row2.getCell(2).setCellValue(data.getTurnover());
-            //有效订单
-            row2.getCell(3).setCellValue(data.getValidOrderCount());
-            //订单完成率
-            row2.getCell(4).setCellValue(data.getOrderCompletionRate());
-            //平均客单价
-            row2.getCell(5).setCellValue(data.getUnitPrice());
-            //新增用户数
-            row2.getCell(6).setCellValue(data.getNewUsers());
+        try {
+            //基于模板文件创建一个新的Excel文件
+            XSSFWorkbook excel = new XSSFWorkbook(in);
+
+            //获取表格文件的Sheet页
+            XSSFSheet sheet = excel.getSheet("Sheet1");
+
+            //填充数据--时间
+            sheet.getRow(1).getCell(1).setCellValue("时间：" + dateBegin + "至" + dateEnd);
+
+            //获得第4行
+            XSSFRow row = sheet.getRow(3);
+            row.getCell(2).setCellValue(businessDataVO.getTurnover());
+            row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());
+            row.getCell(6).setCellValue(businessDataVO.getNewUsers());
+
+            //获得第5行
+            row = sheet.getRow(4);
+            row.getCell(2).setCellValue(businessDataVO.getValidOrderCount());
+            row.getCell(4).setCellValue(businessDataVO.getUnitPrice());
+
+            //填充明细数据
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = dateBegin.plusDays(i);
+                //查询某一天的营业数据
+                BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+
+                //获得某一行
+                row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(businessData.getTurnover());
+                row.getCell(3).setCellValue(businessData.getValidOrderCount());
+                row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+                row.getCell(5).setCellValue(businessData.getUnitPrice());
+                row.getCell(6).setCellValue(businessData.getNewUsers());
+            }
+
+            //3. 通过输出流将Excel文件下载到客户端浏览器
+            ServletOutputStream out = response.getOutputStream();
+            excel.write(out);
+
+            //关闭资源
+            out.close();
+            excel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        //输出数据
-        ServletOutputStream outputStream = httpResponse.getOutputStream();
-        httpResponse.reset();
-        httpResponse.setContentType("application/vnd.ms-excel");
-        httpResponse.addHeader("Content-disposition", "attachment;filename=template.xlsx");
-        workbook.write(outputStream);
-        outputStream.flush();
-        outputStream.close();
-
     }
-
     private Integer sumArrayList(ArrayList<Integer> arrayList) {
         Integer sum = 0;
         for (Integer integer : arrayList) {

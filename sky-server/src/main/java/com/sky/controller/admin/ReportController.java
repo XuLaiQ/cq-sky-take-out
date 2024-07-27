@@ -88,17 +88,13 @@ public class ReportController {
     }
 
     /**
-     * 导出excel表格
-     *
-     * @return
+     * 导出运营数据报表
+     * @param response
      */
-    @ApiOperation("导出excel表格")
     @GetMapping("/export")
-    public Result export(HttpServletResponse httpResponse) throws IOException, InvalidFormatException {
-        log.info("导出Excel表格");
-        reportService.export(httpResponse);
-
-        return Result.success("OK");
+    @ApiOperation("导出运营数据报表")
+    public void export(HttpServletResponse response){
+        reportService.exportBusinessData(response);
     }
 
 }
