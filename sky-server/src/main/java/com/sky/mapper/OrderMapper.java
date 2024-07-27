@@ -5,7 +5,12 @@ import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
 import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Author ：xulai
@@ -64,4 +69,32 @@ public interface OrderMapper {
      */
     @Select("select * from orders where id = #{id}")
     Orders getById(Long id);
+
+    /**
+     * 获取配送超时的订单
+     * @param pendingPayment
+     * @return
+     */
+    List<Orders> getByStatusAndOrderTimeLT(@Param("pendingPayment") Integer pendingPayment, @Param("time") LocalDateTime time);
+
+    /**
+     * 批量修改派送状态
+     * @param ordersList
+     */
+    void updateBatchStatus(@Param("ordersList") List<Orders> ordersList,@Param("status") Integer status);
+
+    /**
+     * 查询总订单数
+     * @param map
+     * @return
+     */
+    Integer countByMap(@Param("map") Map map);
+
+    /**
+     * 统计营业额
+     * @param map
+     * @return
+     */
+    Double sumByMap(@Param("map")Map map);
+
 }

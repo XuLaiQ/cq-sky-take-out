@@ -98,9 +98,12 @@
         </if>
     </select>
     <select id="sumByMap" resultType="java.lang.Double" parameterType="java.util.Map">
-        select sum(amount) from orders where order_time <![CDATA[
+        select sum(amount)
+        from orders
+        where order_time <![CDATA[
         <
-        ]]> #{map.end} and order_time <![CDATA[
+        ]]> #{map.end}
+          and order_time <![CDATA[
         >
         ]]> #{map.begin}
     </select>
