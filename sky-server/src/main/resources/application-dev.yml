@@ -7,8 +7,18 @@ sky:
     username: root
     password:
 
+  alioss:
+    # 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
+    endpoint: oss-cn-beijing.aliyuncs.com
+    access-key-id:
+    access-key-secret:
+    bucket-name:
+
   redis:
     host: localhost
     port: 6379
-    password:
-    database: 0
+    database: 10
+
+  wechat:
+    app-id:
+    secret:
