@@ -1,8 +1,10 @@
+
+
 # 苍穹外卖后端项目
 
 ## 1. 介绍
 
-​	黑马程序员Java项目实战《苍穹外卖》，学习网址：https://www.bilibili.com/video/BV1TP411v7v6/
+​	黑马程序员Java项目实战《苍穹外卖》，视频学习网址：https://www.bilibili.com/video/BV1TP411v7v6/
 
 
 
@@ -13,23 +15,29 @@
 
 
 
-## 3. 技术学习
+## 3. 技术学习 
 
-![image-20240708130701117](D:%5CSoftwareTemp%5CIDEA-UI%5Cproject-practice%5Csky-take-out%5CREADME.assets%5Cimage-20240708130701117.png)
+![image-20240708130701117](README.assets/image-20240708130701117.png)
 
 
 
 ---
 
+### 微信小程序
+
+微信小程序官方开发文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/ext.html
+
+微信开发者工具下载地址：https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html
+
+
+
 ### 前端nginx配置
 
-![nginx反向代理](D:%5CSoftwareTemp%5CIDEA-UI%5Cproject-practice%5Csky-take-out%5CREADME.assets%5Cnginx%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.png)
+![nginx反向代理](README.assets/nginx%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.png)
 
 
 
-
-
-![nginx负载均衡](D:%5CSoftwareTemp%5CIDEA-UI%5Cproject-practice%5Csky-take-out%5CREADME.assets%5Cnginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
+![nginx负载均衡](README.assets/nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
 
 
 
@@ -200,7 +208,7 @@ Swagger 注解的实施通常包括以下步骤：
 
 
 
-### 阿里云的oss对象储存
+### 阿里云oss对象储存
 
 博客参考：https://blog.csdn.net/AN_NI_112/article/details/132076550
 
@@ -216,7 +224,7 @@ Swagger 注解的实施通常包括以下步骤：
 
 1.  cron表达式
 
-![image-20240725113117677](D:%5CSoftwareTemp%5CIDEA-UI%5Cproject-practice%5Csky-take-out%5CREADME.assets%5Cimage-20240725113117677.png)
+![image-20240725113117677](README.assets/image-20240725113117677.png)
 
 
 
@@ -224,9 +232,9 @@ Swagger 注解的实施通常包括以下步骤：
 
 博客参考：https://www.ruanyifeng.com/blog/2017/05/websocket.html
 
-WebSocket 协议在2008年诞生，2011年成为国际标准。所有浏览器都已经支持了。它的最大特点就是，服务器可以主动向客户端推送信息，客户端也可以主动向服务器发送信息，是真正的双向平等对话，属于服务器推送技术的一种。
+WebSocket 协议在2008年诞生，2011年成为国际标准。所有浏览器都已经支持了。它的最大特点就是，服务器可以主动向客户端推送信息，客户端也可以主动
 
-![image-20240725113846105](D:%5CSoftwareTemp%5CIDEA-UI%5Cproject-practice%5Csky-take-out%5CREADME.assets%5Cimage-20240725113846105.png)
+![image-20240725113846105](README.assets/image-20240725113846105.png)
 
 
 
@@ -246,6 +254,178 @@ WebSocket 协议在2008年诞生，2011年成为国际标准。所有浏览器�
 
 
 
+### Spring Cache数据缓存
+
+参考博客：https://www.cnblogs.com/yoci/p/11595226.html
+
+使用：
+
+- 导入依赖
+
+  ```xml
+  <dependency>
+  	<groupId>org.springframework.boot</groupId>
+  	<artifactId>spring-boot-starter-cache</artifactId>
+  </dependency>
+  ```
+
+- 在启动类上添加注解开启缓存；
+
+  ```java
+  @SpringBootApplication
+  @EnableTransactionManagement //开启注解方式的事务管理
+  @EnableCaching  // 开启缓存
+  public class SkyApplication {
+      public static void main(String[] args) {
+          SpringApplication.run(SkyApplication.class, args);
+          log.info("server started");
+      }
+  }
+  ```
+
+- 在方法上添加注解
+
+| 名称           | 解释                                                         |
+| :------------- | :----------------------------------------------------------- |
+| Cache          | 缓存接口，定义缓存操作。实现有：RedisCache、EhCacheCache、ConcurrentMapCache等 |
+| CacheManager   | 缓存管理器，管理各种缓存（cache）组件                        |
+| @Cacheable     | 主要针对方法配置，能够根据方法的请求参数对其进行缓存         |
+| @CacheEvict    | 清空缓存                                                     |
+| @CachePut      | 保证方法被调用，又希望结果被缓存。 与@Cacheable区别在于是否每次都调用方法，常用于更新 |
+| @EnableCaching | 开启基于注解的缓存                                           |
+| keyGenerator   | 缓存数据时key生成策略                                        |
+| serialize      | 缓存数据时value序列化策略                                    |
+| @CacheConfig   | 统一配置本类的缓存注解的属性                                 |
+
+
+
+项目中所使用的：
+
+admin/SetmealController.java
+
+```java
+/**
+     * 套餐起售、停售
+     *
+     * @param status
+     * @param id
+     * @return
+     */
+@PostMapping("/status/{status}")
+@ApiOperation("套餐起售、停售")
+@CacheEvict(cacheNames = "setmealCache",allEntries = true)
+public Result startOrStop(@PathVariable Integer status, Long id) {
+    setmealService.startOrStop(status, id);
+    return Result.success();
+}
+```
+
+user/SetmealController.java
+
+```java
+/**
+ * 套餐起售、停售
+ *
+ * @param status
+ * @param id
+ * @return
+ */
+@PostMapping("/status/{status}")
+@ApiOperation("套餐起售、停售")
+@CacheEvict(cacheNames = "setmealCache",allEntries = true)
+public Result startOrStop(@PathVariable Integer status, Long id) {
+    setmealService.startOrStop(status, id);
+    return Result.success();
+}
+```
+
+
+
+
+
+### POI 操作excel文件
+
+参考博客：https://blog.csdn.net/hadues/article/details/113859228
+
+Apache POl是一个处理Miscrosoft Office各种文件格式的开源项目。简单来说就是，我们可以使用 POI在 Java 程序中对Miscrosoft Office各种文件进行读写操作。
+
+ReportServiceImpl.java
+
+```java
+    /**
+     * 导出运营数据报表
+     * @param response
+     */
+    public void exportBusinessData(HttpServletResponse response) {
+        //1. 查询数据库，获取营业数据---查询最近30天的运营数据
+        LocalDate dateBegin = LocalDate.now().minusDays(30);
+        LocalDate dateEnd = LocalDate.now().minusDays(1);
+
+        //查询概览数据
+        BusinessDataVO businessDataVO = workspaceService.getBusinessData(LocalDateTime.of(dateBegin, LocalTime.MIN), LocalDateTime.of(dateEnd, LocalTime.MAX));
+
+        //2. 通过POI将数据写入到Excel文件中
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+
+        try {
+            //基于模板文件创建一个新的Excel文件
+            XSSFWorkbook excel = new XSSFWorkbook(in);
+
+            //获取表格文件的Sheet页
+            XSSFSheet sheet = excel.getSheet("Sheet1");
+
+            //填充数据--时间
+            sheet.getRow(1).getCell(1).setCellValue("时间：" + dateBegin + "至" + dateEnd);
+
+            //获得第4行
+            XSSFRow row = sheet.getRow(3);
+            row.getCell(2).setCellValue(businessDataVO.getTurnover());
+            row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());
+            row.getCell(6).setCellValue(businessDataVO.getNewUsers());
+
+            //获得第5行
+            row = sheet.getRow(4);
+            row.getCell(2).setCellValue(businessDataVO.getValidOrderCount());
+            row.getCell(4).setCellValue(businessDataVO.getUnitPrice());
+
+            //填充明细数据
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = dateBegin.plusDays(i);
+                //查询某一天的营业数据
+                BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+
+                //获得某一行
+                row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(businessData.getTurnover());
+                row.getCell(3).setCellValue(businessData.getValidOrderCount());
+                row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+                row.getCell(5).setCellValue(businessData.getUnitPrice());
+                row.getCell(6).setCellValue(businessData.getNewUsers());
+            }
+
+            //3. 通过输出流将Excel文件下载到客户端浏览器
+            ServletOutputStream out = response.getOutputStream();
+            excel.write(out);
+
+            //关闭资源
+            out.close();
+            excel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+    
+```
+
+
+
 
 
 # 注释
+
+路漫漫其修远兮，吾将上下而求索。
+
+
+
