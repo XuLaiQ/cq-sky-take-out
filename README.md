@@ -254,6 +254,76 @@ WebSocket 协议在2008年诞生，2011年成为国际标准。所有浏览器�
 
 
 
+### 动态MySQL
+
+ShoppingCartMapper.xml
+
+```xml
+    <delete id="delete" parameterType="com.sky.entity.ShoppingCart">
+        delete from shopping_cart
+        <where>
+            <if test="userId!=null">
+                user_id=#{userId}
+            </if>
+            <if test="dishId!=null">
+                and dish_id=#{dishId}
+            </if>
+            <if test="dishFlavor!=null">
+                and dish_flavor=#{dishFlavor}
+            </if>
+            <if test="setmealId!=null">
+                and setmeal_id=#{setmealId}
+            </if>
+        </where>
+
+    </delete>
+
+
+    <insert id="insertBatch" parameterType="list">
+        insert into shopping_cart
+        (name, image, user_id, dish_id, setmeal_id, dish_flavor, number, amount, create_time)
+        values
+        <foreach collection="shoppingCartList" item="sc" separator=",">
+            (#{sc.name},#{sc.image},#{sc.userId},#{sc.dishId},#{sc.setmealId},#{sc.dishFlavor},#{sc.number},#{sc.amount},#{sc.createTime})
+        </foreach>
+    </insert>
+```
+
+
+
+AddressBookMapper.xml
+
+```xml
+    <update id="update" parameterType="addressBook">
+        update address_book
+        <set>
+            <if test="consignee != null">
+                consignee = #{consignee},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="detail != null">
+                detail = #{detail},
+            </if>
+            <if test="label != null">
+                label = #{label},
+            </if>
+            <if test="isDefault != null">
+                is_default = #{isDefault},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+```
+
+
+
+
+
 ### Spring Cache数据缓存
 
 参考博客：https://www.cnblogs.com/yoci/p/11595226.html
